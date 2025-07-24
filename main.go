@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -174,6 +175,10 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+
+	// PgBouncer
+	os.Setenv("PGAPPNAME", "")
+	os.Setenv("PGOPTIONS", "")
 
 	models.DBConnect()
 	models.CreateTable()

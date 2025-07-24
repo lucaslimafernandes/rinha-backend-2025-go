@@ -24,8 +24,8 @@ func DBConnect() error {
 		return err
 	}
 
-	DB.SetMaxOpenConns(40)
-	DB.SetMaxIdleConns(20)
+	DB.SetMaxOpenConns(20)
+	DB.SetMaxIdleConns(10)
 	DB.SetConnMaxLifetime(5 * time.Second)
 
 	err = DB.Ping()
