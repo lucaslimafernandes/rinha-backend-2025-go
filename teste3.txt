@@ -1,0 +1,50 @@
+ARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+WARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+WARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+WARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+WARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+WARN[0061] Request Failed                                error="Post \"http://localhost:9999/payments\": request timeout"
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    balance_inconsistency_amount............................................: 145309.8 2326.072763/s
+    default_total_amount....................................................: 151478.8 2424.82414/s
+    default_total_fee.......................................................: 7573.94  121.241207/s
+    default_total_requests..................................................: 7612     121.850459/s
+    fallback_total_amount...................................................: 49053.5  785.232725/s
+    fallback_total_fee......................................................: 7358.025 117.784909/s
+    fallback_total_requests.................................................: 2465     39.458931/s
+    total_transactions_amount...............................................: 200532.3 3210.056865/s
+    transactions_failure....................................................: 1392     22.28269/s
+    transactions_success....................................................: 8685     139.0267/s
+
+    HTTP
+    http_req_duration.......................................................: p(98)=1.5s  p(99)=1.5s  count=10127
+      { expected_response:true }............................................: p(98)=1.46s p(99)=1.48s count=8734 
+    http_req_failed.........................................................: 13.75%   1393 out of 10127
+    http_reqs...............................................................: 10127    162.109774/s
+
+    EXECUTION
+    iteration_duration......................................................: p(98)=2.5s  p(99)=2.51s count=10089
+    iterations..............................................................: 10089    161.501482/s
+    vus.....................................................................: 150      min=8             max=498
+    vus_max.................................................................: 504      min=504           max=504
+
+    NETWORK
+    data_received...........................................................: 1.4 MB   22 kB/s
+    data_sent...............................................................: 2.0 MB   33 kB/s
+
+
+
+
+running (1m02.5s), 000/504 VUs, 10089 complete and 0 interrupted iterations
+payments             ✓ [======================================] 000/500 VUs  1m0s
+payments_consistency ✓ [======================================] 1 VUs        1m0s
+stage_00             ✓ [======================================] 1 VUs        1s
+stage_01             ✓ [======================================] 1 VUs        1s
+stage_02             ✓ [======================================] 1 VUs        1s
+stage_03             ✓ [======================================] 1 VUs        1s
+stage_04             ✓ [======================================] 1 VUs        1s
+stage_05             ✓ [======================================] 1 VUs        1s
