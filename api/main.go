@@ -132,8 +132,6 @@ func main() {
 	models.DBConnect()
 	models.CreateTable()
 
-	go updateHealthLoop()
-
 	http.HandleFunc("/healthy", healthy)
 
 	http.HandleFunc("/admin/purge-payments", purgePayments)

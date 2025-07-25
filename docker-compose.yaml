@@ -1,7 +1,7 @@
 # Template do py_rinha
 x-templates:
   go_rinha_template: &go_rinha_template
-    build: ./
+    build: api/
     networks:
       - backend
       - payment-processor
@@ -17,16 +17,11 @@ x-templates:
       - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
       - KAFKA_BROKER=kafka:9092
       - KAFKA_TOPIC=payments_topic
-      # - REDIS_HOST=redis_py
-      # - REDIS_PORT=6379
-      # - REDIS_KEY=healthy
-    # cpus: "0.25"
-    # mem_limit: "50m"
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: "50MB"
+          cpus: '0.35'
+          memory: "80MB"
 
 services:
 
@@ -50,13 +45,11 @@ services:
       POSTGRES_USER: postgres
     networks:
       - backend
-    # cpus: "0.45"
-    # mem_limit: "140m"
     deploy:
       resources:
         limits:
-          cpus: '0.45'
-          memory: "140MB"
+          cpus: '0.25'
+          memory: "60MB"
 
   pgbouncer:
     image: edoburu/pgbouncer
@@ -79,13 +72,26 @@ services:
     environment:
       - DB_USER=postgres
       - DB_PASSWORD=password
-    # cpus: "0.25"
-    # mem_limit: "50m"
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: "50MB"
+          cpus: '0.15'
+          memory: "30MB"
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: "30MB"
 
   kafka:
     image: apache/kafka:latest
@@ -108,11 +114,13 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
     restart: always
+    depends_on:
+      - zookeeper
     deploy:
       resources:
         limits:
-          cpus: '0.30'
-          memory: "80MB"
+          cpus: '0.2'
+          memory: "40MB"
 
   nginx:
     image: nginx:alpine
@@ -127,13 +135,35 @@ services:
     networks:
       - backend
       - payment-processor
-    # cpus: "0.30"
-    # mem_limit: "60m"
     deploy:
       resources:
         limits:
-          cpus: '0.3'
-          memory: "60MB"
+          cpus: '0.1'
+          memory: "30MB"
+
+  worker_rinha:
+    build: worker/
+    container_name: worker_rinha
+    networks:
+      - backend
+      - payment-processor
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+    restart: always
+    expose:
+      - "9999"
+    environment:
+      - PG_DSN=user=postgres password=password host=pgbouncer port=6432 dbname=postgres sslmode=disable
+      - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+      - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=payments_topic
+    deploy:
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: "80MB"
 
   go_rinha_1:
     <<: *go_rinha_template
@@ -143,8 +173,6 @@ services:
     <<: *go_rinha_template
     container_name: go_rinha_2
 
-
-
 volumes:
   db_pg-data:
 
@@ -152,4 +180,4 @@ networks:
   backend:
     driver: bridge
   payment-processor:
-    external: true  
+    external: true
