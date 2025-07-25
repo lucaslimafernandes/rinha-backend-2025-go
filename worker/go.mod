@@ -1,4 +1,4 @@
-module github.com/lucaslimafernandes/rinha-backend-2025-go
+module worker-rinha
 
 go 1.24.2
 

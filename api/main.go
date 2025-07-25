@@ -1,44 +1,20 @@
 package main
 
 import (
+	"api-rinha/models"
+	"api-rinha/utils"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
-
-	"github.com/lucaslimafernandes/rinha-backend-2025-go/models"
-	"github.com/lucaslimafernandes/rinha-backend-2025-go/utils"
 )
 
 type HealthResponse struct {
 	Message string `json:"message"`
 	Status  string `json:"status"`
-}
-
-var (
-	healthStatus = make(map[string]int)
-	statusMutex  = sync.RWMutex{}
-)
-
-func updateHealthLoop() {
-
-	for {
-		ch := make(chan map[string]int)
-
-		go utils.CheckService(ch)
-		result := <-ch
-
-		statusMutex.Lock()
-		healthStatus = result
-		statusMutex.Unlock()
-
-		time.Sleep(5 * time.Second)
-
-	}
 }
 
 func healthy(w http.ResponseWriter, req *http.Request) {
@@ -84,14 +60,7 @@ func payment(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	statusMutex.RLock()
-	defer statusMutex.RUnlock()
-
 	w.Header().Set("Content-Type", "application/json")
-
-	if healthStatus["default"] >= 0 {
-		fmt.Fprintf(w, "default")
-	}
 
 	var payment utils.Payment
 
@@ -100,29 +69,9 @@ func payment(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 	}
 
-	switch {
-	case healthStatus["default"] >= 0 && healthStatus["default"] < 99:
-		err = utils.PaymentSend("default", payment)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-	case healthStatus["default"] == -1 && healthStatus["fallback"] >= 0:
-		err = utils.PaymentSend("fallback", payment)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-
-	case healthStatus["default"] > 99 && healthStatus["fallback"] >= 0:
-		err = utils.PaymentSend("fallback", payment)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-
-	default:
-		err = utils.PaymentSend("default", payment)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
+	err = utils.PaymentSend(payment)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 	// json.NewEncoder(w).Encode(payment)
