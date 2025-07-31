@@ -2,13 +2,13 @@ package models
 
 import "fmt"
 
-type payment struct {
-	correlation_id string
-	amount         float64
-	processor      string
+type Payment struct {
+	Correlation_id string
+	Amount         float64
+	Processor      string
 }
 
-func BulkInsert(payments []payment) error {
+func BulkInsert(payments []Payment) error {
 
 	if len(payments) == 0 {
 		return nil
@@ -26,16 +26,12 @@ func BulkInsert(payments []payment) error {
 		if i < len(payments)-1 {
 			placeholders += ", "
 		}
-		values = append(values, p.correlation_id, p.amount, p.processor)
+		values = append(values, p.Correlation_id, p.Amount, p.Processor)
 
 	}
 
 	query += placeholders + ";"
 	_, err := DB.Exec(query, values...)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

@@ -16,6 +16,8 @@ type Payment struct {
 
 func PaymentSend(processor string, payment Payment) error {
 
+	paymentWorker()
+
 	default_uri := os.Getenv("PAYMENT_PROCESSOR_DEFAULT_URL")
 	fallback_uri := os.Getenv("PAYMENT_PROCESSOR_FALLBACK_URL")
 
@@ -39,10 +41,18 @@ func PaymentSend(processor string, payment Payment) error {
 		send(fallback_uri, payment)
 	}
 
-	err := models.InsertPayment(payment.CorrelationId, payment.Amount, processor)
-	if err != nil {
-		return fmt.Errorf("error inserting db: %v", err)
+	pp := models.Payment{
+		Correlation_id: payment.CorrelationId,
+		Amount:         payment.Amount,
+		Processor:      processor,
 	}
+
+	paymentChan <- pp
+
+	// err := models.InsertPayment(payment.CorrelationId, payment.Amount, processor)
+	// if err != nil {
+	// 	return fmt.Errorf("error inserting db: %v", err)
+	// }
 
 	return nil
 
