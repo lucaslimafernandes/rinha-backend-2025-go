@@ -1,37 +1,37 @@
 # Template do py_rinha
-x-templates:
-  go_rinha_template: &go_rinha_template
-    build: ./
-    networks:
-      - backend
-      - payment-processor
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
-    restart: always
-    expose:
-      - "9999"
-    environment:
-      - PG_DSN=user=postgres password=password host=pgbouncer port=6432 dbname=postgres sslmode=disable
-      - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
-      - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
-      - REDIS_HOST=redis_py
-      - REDIS_PORT=6379
-      - REDIS_KEY=healthy
-    # cpus: "0.25"
-    # mem_limit: "50m"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: "50MB"
+# x-templates:
+#   go_rinha_template: &go_rinha_template
+#     build: ./
+#     networks:
+#       - backend
+#       - payment-processor
+#     depends_on:
+#       pgbouncer:
+#         condition: service_healthy
+#     restart: always
+#     expose:
+#       - "9999"
+#     environment:
+#       - PG_DSN=user=postgres password=password host=pgbouncer port=6432 dbname=postgres sslmode=disable
+#       - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+#       - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+#       - REDIS_HOST=redis_py
+#       - REDIS_PORT=6379
+#       - REDIS_KEY=healthy
+#     # cpus: "0.25"
+#     # mem_limit: "50m"
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: '0.25'
+#           memory: "50MB"
 
 services:
 
   db_pg_py:
     image: postgres:14-alpine
     restart: always
-    command: -c 'max_connections=200'
+    # command: -c 'max_connections=200'
     volumes:
       - db_pg-data:/var/lib/postgresql/data
     shm_size: 128mb
@@ -56,34 +56,34 @@ services:
           cpus: '0.45'
           memory: "140MB"
 
-  pgbouncer:
-    image: edoburu/pgbouncer
-    container_name: pgbouncer
-    healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    ports:
-      - "6432:6432"
-    volumes:
-      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
-      - ./userlist.txt:/etc/pgbouncer/userlist.txt
-    depends_on:
-      - db_pg_py
-    networks:
-      - backend
-      - payment-processor
-    environment:
-      - DB_USER=postgres
-      - DB_PASSWORD=password
-    # cpus: "0.25"
-    # mem_limit: "50m"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: "50MB"
+  # pgbouncer:
+  #   image: edoburu/pgbouncer
+  #   container_name: pgbouncer
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+  #   ports:
+  #     - "6432:6432"
+  #   volumes:
+  #     - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+  #     - ./userlist.txt:/etc/pgbouncer/userlist.txt
+  #   depends_on:
+  #     - db_pg_py
+  #   networks:
+  #     - backend
+  #     - payment-processor
+  #   environment:
+  #     - DB_USER=postgres
+  #     - DB_PASSWORD=password
+  #   # cpus: "0.25"
+  #   # mem_limit: "50m"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.25'
+  #         memory: "50MB"
 
   nginx:
     image: nginx:alpine
@@ -106,9 +106,32 @@ services:
           cpus: '0.3'
           memory: "60MB"
 
-  go_rinha_1:
-    <<: *go_rinha_template
+  go_rinha_1: &go_rinha_template
+    build: ./
     container_name: go_rinha_1
+    networks:
+      - backend
+      - payment-processor
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+    restart: always
+    expose:
+      - "9999"
+    environment:
+      - PG_DSN=user=postgres password=password host=pgbouncer port=6432 dbname=postgres sslmode=disable
+      - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+      - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+      - REDIS_HOST=redis_py
+      - REDIS_PORT=6379
+      - REDIS_KEY=healthy
+    # cpus: "0.25"
+    # mem_limit: "50m"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: "50MB"
 
   go_rinha_2:
     <<: *go_rinha_template
