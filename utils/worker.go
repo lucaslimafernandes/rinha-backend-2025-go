@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	BATCH_SIZE = 50
+	BATCH_SIZE = 100
 )
 
 var (
@@ -22,7 +22,7 @@ func paymentWorker() {
 		go func() {
 
 			batch := make([]models.Payment, 0, BATCH_SIZE)
-			ticker := time.NewTicker(5 * time.Second)
+			ticker := time.NewTicker(2 * time.Second)
 			defer ticker.Stop()
 
 			for {
