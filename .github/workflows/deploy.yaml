@@ -59,7 +59,7 @@ jobs:
           context: .
           push: true
           file: ./Dockerfile
-          target: prod
+          # target: prod
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/lucaslimafernandes/rinha-backend-2025-go:${{ steps.get_tag.outputs.tag }}
