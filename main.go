@@ -181,7 +181,10 @@ func main() {
 	os.Setenv("PGOPTIONS", "")
 
 	models.DBConnect()
-	models.CreateTable()
+
+	if os.Getenv("CREATE_SCHEMA") == "true" {
+		models.CreateTable()
+	}
 
 	go updateHealthLoop()
 
