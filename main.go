@@ -187,10 +187,6 @@ func main() {
 
 	models.DBConnect()
 
-	if os.Getenv("CREATE_SCHEMA") == "true" {
-		models.CreateTable()
-	}
-
 	go updateHealthLoop()
 
 	http.HandleFunc("/healthy", healthy)

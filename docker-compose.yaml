@@ -5,6 +5,7 @@ services:
     restart: always
     volumes:
       - db_pg-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     shm_size: 128mb
     container_name: db_pg
     ports:
@@ -69,11 +70,6 @@ services:
   go_rinha_2:
     <<: *go_rinha_template
     container_name: go_rinha_2
-    environment:
-      - PG_DSN=user=postgres password=password host=db_pg port=5432 dbname=postgres sslmode=disable
-      - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
-      - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
-      - CREATE_SCHEMA=true
 
 volumes:
   db_pg-data:
