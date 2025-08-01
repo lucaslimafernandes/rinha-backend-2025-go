@@ -60,6 +60,11 @@ func healthy(w http.ResponseWriter, req *http.Request) {
 
 func purgePayments(w http.ResponseWriter, req *http.Request) {
 
+	if req.Method != http.MethodPost {
+		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := models.PurgeTable()
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "%v"}`, err), http.StatusInternalServerError)
@@ -190,7 +195,8 @@ func main() {
 
 	http.HandleFunc("/healthy", healthy)
 
-	http.HandleFunc("/admin/purge-payments", purgePayments)
+	// http.HandleFunc("/admin/purge-payments", purgePayments)
+	http.HandleFunc("/purge-payments", purgePayments)
 	http.HandleFunc("/payments", payment)
 	http.HandleFunc("/payments-summary", paymentsSummary)
 

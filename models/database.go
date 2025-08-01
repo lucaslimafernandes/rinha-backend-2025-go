@@ -77,7 +77,7 @@ func CreateTable() error {
 }
 
 func PurgeTable() error {
-	return ExecuteQuery("create_payments_table")
+	return ExecuteQuery("purge_payments")
 }
 
 func InsertPayment(correlation_id string, amount float64, processor string) error {
