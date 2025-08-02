@@ -141,11 +141,27 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+
+	result_default := map[string]map[string]interface{}{
+		"default": {
+			"totalRequests": 0,
+			"totalAmount":   0.0,
+		},
+		"fallback": {
+			"totalRequests": 0,
+			"totalAmount":   0.0,
+		},
+	}
+
 	fromStr := req.URL.Query().Get("from")
 	toStr := req.URL.Query().Get("to")
 
 	if fromStr == "" || toStr == "" {
-		http.Error(w, "Missing 'from' or 'to' parameters", http.StatusBadRequest)
+		// http.Error(w, "Missing 'from' or 'to' parameters", http.StatusBadRequest)
+		// return
+		log.Println("Missing 'from' or 'to' parameters")
+		json.NewEncoder(w).Encode(result_default)
 		return
 	}
 
@@ -158,19 +174,28 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 
 	fromTime, err := time.Parse(time.RFC3339, fromStr)
 	if err != nil {
-		http.Error(w, "Invalid 'from' datetime format", http.StatusBadRequest)
+		// http.Error(w, "Invalid 'from' datetime format", http.StatusBadRequest)
+		// return
+		log.Println("Invalid 'from' datetime format")
+		json.NewEncoder(w).Encode(result_default)
 		return
 	}
 
 	toTime, err := time.Parse(time.RFC3339, toStr)
 	if err != nil {
-		http.Error(w, "Invalid 'to' datetime format", http.StatusBadRequest)
+		// http.Error(w, "Invalid 'to' datetime format", http.StatusBadRequest)
+		// return
+		log.Println("Invalid 'to' datetime format")
+		json.NewEncoder(w).Encode(result_default)
 		return
 	}
 
 	summary, err := models.GetPaymentSummary(fromTime, toTime)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		// http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		// return
+		log.Printf("Database error: %v\n", err)
+		json.NewEncoder(w).Encode(result_default)
 		return
 	}
 
