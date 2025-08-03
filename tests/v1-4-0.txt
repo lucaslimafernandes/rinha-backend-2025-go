@@ -1,0 +1,66 @@
+main ✔ $ k6 run rinha.js 
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: rinha.js
+        output: -
+
+     scenarios: (100.00%) 8 scenarios, 504 max VUs, 1m30s max duration (incl. graceful stop):
+              * payments: Up to 500 looping VUs for 1m0s over 1 stages (gracefulRampDown: 0s, exec: payments, gracefulStop: 30s)
+              * payments_consistency: 1 looping VUs for 1m0s (exec: checkPaymentsConsistency, gracefulStop: 30s)
+              * stage_00: 1 looping VUs for 1s (exec: define_stage, startTime: 1s, gracefulStop: 30s)
+              * stage_01: 1 looping VUs for 1s (exec: define_stage, startTime: 10s, gracefulStop: 30s)
+              * stage_02: 1 looping VUs for 1s (exec: define_stage, startTime: 20s, gracefulStop: 30s)
+              * stage_03: 1 looping VUs for 1s (exec: define_stage, startTime: 30s, gracefulStop: 30s)
+              * stage_04: 1 looping VUs for 1s (exec: define_stage, startTime: 40s, gracefulStop: 30s)
+              * stage_05: 1 looping VUs for 1s (exec: define_stage, startTime: 50s, gracefulStop: 30s)
+
+WARN[0011] 258 inconsistências encontradas.              source=console
+WARN[0021] 1332 inconsistências encontradas.             source=console
+WARN[0031] 2510 inconsistências encontradas.             source=console
+WARN[0041] 3587 inconsistências encontradas.             source=console
+WARN[0051] 4580 inconsistências encontradas.             source=console
+INFO[0062] summaries from 2025-08-03T14:00:54.422Z to 2025-08-03T14:02:04.422Z  source=console
+     data_received..................: 2.3 MB    37 kB/s
+     data_sent......................: 2.9 MB    48 kB/s
+     default_total_amount...........: 228710.7  3733.476791/s
+     default_total_fee..............: 11435.535 186.67384/s
+     default_total_requests.........: 11493     187.611899/s
+     fallback_total_amount..........: 59759.7   975.518211/s
+     fallback_total_fee.............: 8963.955  146.327732/s
+     fallback_total_requests........: 3003      49.021016/s
+     http_req_blocked...............: p(99)=580.48µs count=14555
+     http_req_connecting............: p(99)=401.17µs count=14555
+     http_req_duration..............: p(99)=306.93ms count=14555
+       { expected_response:true }...: p(99)=306.93ms count=14555
+     http_req_failed................: 0.00%     ✓ 0           ✗ 14555
+     http_req_receiving.............: p(99)=1.08ms   count=14555
+     http_req_sending...............: p(99)=302.9µs  count=14555
+     http_req_tls_handshaking.......: p(99)=0s       count=14555
+     http_req_waiting...............: p(99)=306.68ms count=14555
+     http_reqs......................: 14555     237.596032/s
+     iteration_duration.............: p(99)=1.31s    count=14517
+     iterations.....................: 14517     236.975719/s
+     payments_inconsistency.........: 12267     200.246686/s
+     total_transactions_amount......: 288470.4  4708.995002/s
+     transactions_failure...........: 0         0/s
+     transactions_success...........: 14505     236.779831/s
+     vus............................: 130       min=7         max=498
+
+running (1m01.3s), 000/504 VUs, 14517 complete and 0 interrupted iterations
+payments             ✓ [======================================] 000/500 VUs  1m0s
+payments_consistency ✓ [======================================] 1 VUs        1m0s
+stage_00             ✓ [======================================] 1 VUs        1s
+stage_01             ✓ [======================================] 1 VUs        1s
+stage_02             ✓ [======================================] 1 VUs        1s
+stage_03             ✓ [======================================] 1 VUs        1s
+stage_04             ✓ [======================================] 1 VUs        1s
+stage_05             ✓ [======================================] 1 VUs        1s
+
+
+

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -8,7 +9,8 @@ import (
 )
 
 const (
-	BATCH_SIZE = 100
+	BATCH_SIZE  = 100
+	TIME_TICKER = 2000 * time.Millisecond
 )
 
 var (
@@ -16,13 +18,15 @@ var (
 	once        sync.Once
 )
 
-func paymentWorker() {
+func PaymentWorker() {
+
+	log.Printf("BATCH_SIZE: %v\nTIME_TICKER: %v\n", BATCH_SIZE, TIME_TICKER)
 
 	once.Do(func() {
 		go func() {
 
 			batch := make([]models.Payment, 0, BATCH_SIZE)
-			ticker := time.NewTicker(2 * time.Second)
+			ticker := time.NewTicker(TIME_TICKER)
 			defer ticker.Stop()
 
 			for {

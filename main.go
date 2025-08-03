@@ -214,6 +214,8 @@ func main() {
 
 	go updateHealthLoop()
 
+	go utils.PaymentWorker()
+
 	http.HandleFunc("/healthy", healthy)
 
 	// http.HandleFunc("/admin/purge-payments", purgePayments)

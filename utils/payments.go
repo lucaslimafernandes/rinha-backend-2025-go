@@ -16,7 +16,7 @@ type Payment struct {
 
 func PaymentSend(processor string, payment Payment) error {
 
-	paymentWorker()
+	// PaymentWorker()
 
 	default_uri := os.Getenv("PAYMENT_PROCESSOR_DEFAULT_URL")
 	fallback_uri := os.Getenv("PAYMENT_PROCESSOR_FALLBACK_URL")
