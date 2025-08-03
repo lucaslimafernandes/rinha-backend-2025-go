@@ -1,36 +1,42 @@
 package models
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var DB *sql.DB
+var DB *pgxpool.Pool
 
 func DBConnect() error {
 
 	var err error
 
 	connStr := os.Getenv("PG_DSN")
-
-	DB, err = sql.Open("postgres", connStr)
+	cfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		log.Printf("Failed to connect: %v\n", err)
-		return err
+		return fmt.Errorf("failed to parse pool config: %v", err)
 	}
 
-	DB.SetMaxOpenConns(20)
-	DB.SetMaxIdleConns(10)
-	DB.SetConnMaxLifetime(5 * time.Second)
+	// pool configs
+	cfg.MaxConns = 30
+	cfg.MinConns = 5
+	cfg.MaxConnLifetime = 5 * time.Minute
 
-	err = DB.Ping()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	DB, err = pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		log.Fatalf("Failed to ping: %v\n", err)
+		return fmt.Errorf("failed to connect: %v", err)
+	}
+
+	err = DB.Ping(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to ping: %v", err)
 	}
 
 	return nil
@@ -52,7 +58,7 @@ func ExecuteQuery(queryName string) error {
 		return fmt.Errorf("query %s not found", queryName)
 	}
 
-	_, err := DB.Exec(query)
+	_, err := DB.Exec(context.Background(), query)
 	if err != nil {
 		return fmt.Errorf("error executing query %s: %w", queryName, err)
 	}
@@ -72,7 +78,7 @@ func InsertPayment(correlation_id string, amount float64, processor string) erro
 		return fmt.Errorf("query insert_payments not found")
 	}
 
-	_, err := DB.Exec(query, correlation_id, amount, processor)
+	_, err := DB.Exec(context.Background(), query, correlation_id, amount, processor)
 	if err != nil {
 		return fmt.Errorf("error executing query insert_payments: %w", err)
 	}
@@ -102,7 +108,7 @@ func GetPaymentSummary(fromTime, toTime time.Time) (map[string]map[string]interf
 		GROUP BY processor;
 	`
 
-	rows, err := DB.Query(query, fromTime, toTime)
+	rows, err := DB.Query(context.Background(), query, fromTime, toTime)
 	if err != nil {
 		return nil, err
 	}

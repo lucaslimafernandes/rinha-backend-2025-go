@@ -10,7 +10,7 @@ import (
 
 const (
 	BATCH_SIZE  = 100
-	TIME_TICKER = 2000 * time.Millisecond
+	TIME_TICKER = 50 * time.Millisecond
 )
 
 var (
@@ -34,13 +34,13 @@ func PaymentWorker() {
 				case p := <-paymentChan:
 					batch = append(batch, p)
 					if len(batch) >= BATCH_SIZE {
-						go models.BulkInsert(batch)
+						models.BulkInsert(batch)
 						batch = make([]models.Payment, 0, BATCH_SIZE)
 					}
 
 				case <-ticker.C:
 					if len(batch) > 0 {
-						go models.BulkInsert(batch)
+						models.BulkInsert(batch)
 						batch = make([]models.Payment, 0, BATCH_SIZE)
 
 					}
