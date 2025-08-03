@@ -35,3 +35,13 @@ func BulkInsert(payments []Payment) error {
 
 	return err
 }
+
+func SimpleInsert(p Payment) error {
+
+	query := `INSERT INTO payments (correlation_id, amount, processor) VALUES ($1, $2, $3)`
+
+	_, err := DB.Exec(query, p.Correlation_id, p.Amount, p.Processor)
+
+	return err
+
+}
