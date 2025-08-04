@@ -99,6 +99,7 @@ func payment(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var payment utils.Payment
+	var processor string
 
 	err := json.NewDecoder(req.Body).Decode(&payment)
 	if err != nil {
@@ -108,27 +109,37 @@ func payment(w http.ResponseWriter, req *http.Request) {
 	switch {
 	case healthStatus["default"] >= 0 && healthStatus["default"] < 99:
 		err = utils.PaymentSend("default", payment)
+		processor = "default"
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 	case healthStatus["default"] == -1 && healthStatus["fallback"] >= 0:
 		err = utils.PaymentSend("fallback", payment)
+		processor = "fallback"
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
 	case healthStatus["default"] > 99 && healthStatus["fallback"] >= 0:
 		err = utils.PaymentSend("fallback", payment)
+		processor = "fallback"
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
 	default:
 		err = utils.PaymentSend("default", payment)
+		processor = "default"
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 	}
+
+	utils.EnqueuePayment(models.Payment{
+		Correlation_id: payment.CorrelationId,
+		Amount:         payment.Amount,
+		Processor:      processor,
+	})
 
 	// json.NewEncoder(w).Encode(payment)
 
@@ -190,6 +201,7 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// time.Sleep(1 * time.Second)
 	summary, err := models.GetPaymentSummary(fromTime, toTime)
 	if err != nil {
 		// http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
@@ -214,7 +226,8 @@ func main() {
 
 	go updateHealthLoop()
 
-	go utils.PaymentWorker()
+	// go utils.PaymentWorker()
+	utils.StartPaymentPipeline()
 
 	http.HandleFunc("/healthy", healthy)
 

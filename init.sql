@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS payments (
+CREATE UNLOGGED TABLE IF NOT EXISTS payments (
 			id SERIAL PRIMARY KEY,
 			correlation_id UUID NOT NULL,
 			amount NUMERIC(12, 2) NOT NULL,

@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/lucaslimafernandes/rinha-backend-2025-go/models"
 )
 
 type Payment struct {
@@ -41,13 +39,13 @@ func PaymentSend(processor string, payment Payment) error {
 		send(fallback_uri, payment)
 	}
 
-	pp := models.Payment{
-		Correlation_id: payment.CorrelationId,
-		Amount:         payment.Amount,
-		Processor:      processor,
-	}
+	// pp := models.Payment{
+	// 	Correlation_id: payment.CorrelationId,
+	// 	Amount:         payment.Amount,
+	// 	Processor:      processor,
+	// }
 
-	paymentChan <- pp
+	// paymentChan <- pp
 
 	// err := models.InsertPayment(payment.CorrelationId, payment.Amount, processor)
 	// if err != nil {

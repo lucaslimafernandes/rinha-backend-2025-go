@@ -90,21 +90,12 @@ func InsertPayment(correlation_id string, amount float64, processor string) erro
 func GetPaymentSummary(fromTime, toTime time.Time) (map[string]map[string]interface{}, error) {
 
 	query := `
-		WITH daily_summary AS (
-			SELECT 
-				processor,
-				DATE_TRUNC('day', created_at) as day,
-				COUNT(*) as total_requests,
-				SUM(amount)::float as total_amount
-			FROM payments
-			WHERE created_at BETWEEN $1 AND $2
-			GROUP BY processor, DATE_TRUNC('day', created_at)
-		)
 		SELECT 
 			processor,
-			COALESCE(SUM(total_requests), 0) as total_requests,
-			COALESCE(SUM(total_amount), 0.0) as total_amount
-		FROM daily_summary
+			COUNT(*) AS total_requests,
+			SUM(amount)::float AS total_amount
+		FROM payments
+		WHERE created_at BETWEEN $1 AND $2
 		GROUP BY processor;
 	`
 
