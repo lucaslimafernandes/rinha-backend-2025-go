@@ -1,138 +1,129 @@
 package models
 
-import (
-	"context"
-	"fmt"
-	"os"
-	"time"
+// var DB *pgxpool.Pool
 
-	"github.com/jackc/pgx/v5/pgxpool"
-)
+// func DBConnect() error {
 
-var DB *pgxpool.Pool
+// 	var err error
 
-func DBConnect() error {
+// 	connStr := os.Getenv("PG_DSN")
+// 	cfg, err := pgxpool.ParseConfig(connStr)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to parse pool config: %v", err)
+// 	}
 
-	var err error
+// 	// pool configs
+// 	cfg.MaxConns = 30
+// 	cfg.MinConns = 5
+// 	cfg.MaxConnLifetime = 5 * time.Minute
 
-	connStr := os.Getenv("PG_DSN")
-	cfg, err := pgxpool.ParseConfig(connStr)
-	if err != nil {
-		return fmt.Errorf("failed to parse pool config: %v", err)
-	}
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
 
-	// pool configs
-	cfg.MaxConns = 30
-	cfg.MinConns = 5
-	cfg.MaxConnLifetime = 5 * time.Minute
+// 	DB, err = pgxpool.NewWithConfig(ctx, cfg)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to connect: %v", err)
+// 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+// 	err = DB.Ping(ctx)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to ping: %v", err)
+// 	}
 
-	DB, err = pgxpool.NewWithConfig(ctx, cfg)
-	if err != nil {
-		return fmt.Errorf("failed to connect: %v", err)
-	}
+// 	return nil
 
-	err = DB.Ping(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to ping: %v", err)
-	}
+// }
 
-	return nil
+// var queries = map[string]string{
+// 	"purge_payments": `TRUNCATE TABLE payments;`,
+// 	"insert_payments": `
+// 		INSERT INTO payments (correlation_id, amount, processor)
+// 		VALUES ($1, $2, $3)
+//         RETURNING id ;`,
+// }
 
-}
+// func ExecuteQuery(queryName string) error {
 
-var queries = map[string]string{
-	"purge_payments": `TRUNCATE TABLE payments;`,
-	"insert_payments": `
-		INSERT INTO payments (correlation_id, amount, processor)
-		VALUES ($1, $2, $3)
-        RETURNING id ;`,
-}
+// 	query, ok := queries[queryName]
+// 	if !ok {
+// 		return fmt.Errorf("query %s not found", queryName)
+// 	}
 
-func ExecuteQuery(queryName string) error {
+// 	_, err := DB.Exec(context.Background(), query)
+// 	if err != nil {
+// 		return fmt.Errorf("error executing query %s: %w", queryName, err)
+// 	}
 
-	query, ok := queries[queryName]
-	if !ok {
-		return fmt.Errorf("query %s not found", queryName)
-	}
+// 	return nil
 
-	_, err := DB.Exec(context.Background(), query)
-	if err != nil {
-		return fmt.Errorf("error executing query %s: %w", queryName, err)
-	}
+// }
 
-	return nil
+// func PurgeTable() error {
+// 	return ExecuteQuery("purge_payments")
+// }
 
-}
+// func InsertPayment(correlation_id string, amount float64, processor string) error {
 
-func PurgeTable() error {
-	return ExecuteQuery("purge_payments")
-}
+// 	query, ok := queries["insert_payments"]
+// 	if !ok {
+// 		return fmt.Errorf("query insert_payments not found")
+// 	}
 
-func InsertPayment(correlation_id string, amount float64, processor string) error {
+// 	_, err := DB.Exec(context.Background(), query, correlation_id, amount, processor)
+// 	if err != nil {
+// 		return fmt.Errorf("error executing query insert_payments: %w", err)
+// 	}
 
-	query, ok := queries["insert_payments"]
-	if !ok {
-		return fmt.Errorf("query insert_payments not found")
-	}
+// 	return nil
 
-	_, err := DB.Exec(context.Background(), query, correlation_id, amount, processor)
-	if err != nil {
-		return fmt.Errorf("error executing query insert_payments: %w", err)
-	}
+// }
 
-	return nil
+// func GetPaymentSummary(fromTime, toTime time.Time) (map[string]map[string]interface{}, error) {
 
-}
+// 	query := `
+// 		SELECT
+// 			processor,
+// 			COUNT(*) AS total_requests,
+// 			SUM(amount)::float AS total_amount
+// 		FROM payments
+// 		WHERE created_at BETWEEN $1 AND $2
+// 		GROUP BY processor;
+// 	`
 
-func GetPaymentSummary(fromTime, toTime time.Time) (map[string]map[string]interface{}, error) {
+// 	rows, err := DB.Query(context.Background(), query, fromTime, toTime)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
 
-	query := `
-		SELECT 
-			processor,
-			COUNT(*) AS total_requests,
-			SUM(amount)::float AS total_amount
-		FROM payments
-		WHERE created_at BETWEEN $1 AND $2
-		GROUP BY processor;
-	`
+// 	result := map[string]map[string]interface{}{
+// 		"default": {
+// 			"totalRequests": 0,
+// 			"totalAmount":   0.0,
+// 		},
+// 		"fallback": {
+// 			"totalRequests": 0,
+// 			"totalAmount":   0.0,
+// 		},
+// 	}
 
-	rows, err := DB.Query(context.Background(), query, fromTime, toTime)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+// 	for rows.Next() {
 
-	result := map[string]map[string]interface{}{
-		"default": {
-			"totalRequests": 0,
-			"totalAmount":   0.0,
-		},
-		"fallback": {
-			"totalRequests": 0,
-			"totalAmount":   0.0,
-		},
-	}
+// 		var processor string
+// 		var totalRequests int
+// 		var totalAmount float64
 
-	for rows.Next() {
+// 		err := rows.Scan(&processor, &totalRequests, &totalAmount)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		var processor string
-		var totalRequests int
-		var totalAmount float64
+// 		result[processor] = map[string]interface{}{
+// 			"totalRequests": totalRequests,
+// 			"totalAmount":   totalAmount,
+// 		}
+// 	}
 
-		err := rows.Scan(&processor, &totalRequests, &totalAmount)
-		if err != nil {
-			return nil, err
-		}
+// 	return result, nil
 
-		result[processor] = map[string]interface{}{
-			"totalRequests": totalRequests,
-			"totalAmount":   totalAmount,
-		}
-	}
-
-	return result, nil
-
-}
+// }

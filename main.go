@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -65,7 +64,8 @@ func purgePayments(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := models.PurgeTable()
+	// err := models.PurgeTable()
+	err := models.PurgeRedisData()
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "%v"}`, err), http.StatusInternalServerError)
 	}
@@ -135,7 +135,13 @@ func payment(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	utils.EnqueuePayment(models.Payment{
+	// utils.EnqueuePayment(models.Payment{
+	// 	Correlation_id: payment.CorrelationId,
+	// 	Amount:         payment.Amount,
+	// 	Processor:      processor,
+	// })
+
+	models.InsertPayment(models.Payment{
 		Correlation_id: payment.CorrelationId,
 		Amount:         payment.Amount,
 		Processor:      processor,
@@ -183,26 +189,27 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 		toStr += "Z"
 	}
 
-	fromTime, err := time.Parse(time.RFC3339, fromStr)
-	if err != nil {
-		// http.Error(w, "Invalid 'from' datetime format", http.StatusBadRequest)
-		// return
-		log.Println("Invalid 'from' datetime format")
-		json.NewEncoder(w).Encode(result_default)
-		return
-	}
+	// fromTime, err := time.Parse(time.RFC3339, fromStr)
+	// if err != nil {
+	// 	// http.Error(w, "Invalid 'from' datetime format", http.StatusBadRequest)
+	// 	// return
+	// 	log.Println("Invalid 'from' datetime format")
+	// 	json.NewEncoder(w).Encode(result_default)
+	// 	return
+	// }
 
-	toTime, err := time.Parse(time.RFC3339, toStr)
-	if err != nil {
-		// http.Error(w, "Invalid 'to' datetime format", http.StatusBadRequest)
-		// return
-		log.Println("Invalid 'to' datetime format")
-		json.NewEncoder(w).Encode(result_default)
-		return
-	}
+	// toTime, err := time.Parse(time.RFC3339, toStr)
+	// if err != nil {
+	// 	// http.Error(w, "Invalid 'to' datetime format", http.StatusBadRequest)
+	// 	// return
+	// 	log.Println("Invalid 'to' datetime format")
+	// 	json.NewEncoder(w).Encode(result_default)
+	// 	return
+	// }
 
 	// time.Sleep(1 * time.Second)
-	summary, err := models.GetPaymentSummary(fromTime, toTime)
+	// summary, err := models.GetPaymentSummary(fromTime, toTime)
+	summary, err := models.GetSummary()
 	if err != nil {
 		// http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		// return
@@ -219,15 +226,16 @@ func paymentsSummary(w http.ResponseWriter, req *http.Request) {
 func main() {
 
 	// PgBouncer
-	os.Setenv("PGAPPNAME", "")
-	os.Setenv("PGOPTIONS", "")
+	// os.Setenv("PGAPPNAME", "")
+	// os.Setenv("PGOPTIONS", "")
 
-	models.DBConnect()
+	// models.DBConnect()
+	models.RedisConnect()
 
 	go updateHealthLoop()
 
 	// go utils.PaymentWorker()
-	utils.StartPaymentPipeline()
+	// utils.StartPaymentPipeline()
 
 	http.HandleFunc("/healthy", healthy)
 

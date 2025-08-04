@@ -1,23 +1,16 @@
 services:
 
-  db_pg:
-    image: postgres:14-alpine
+  redis:
+    image: redis:7-alpine
+    container_name: redis
     restart: always
-    volumes:
-      - db_pg-data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    shm_size: 128mb
-    container_name: db_pg
     ports:
-      - "5432:5432"
+      - "6379:6379"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres -h localhost"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 5
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: postgres
     networks:
       - backend
     deploy:
@@ -52,13 +45,13 @@ services:
       - backend
       - payment-processor
     depends_on:
-      db_pg:
+      redis:
         condition: service_healthy
     restart: always
     expose:
       - "9999"
     environment:
-      - PG_DSN=user=postgres password=password host=db_pg port=5432 dbname=postgres sslmode=disable
+      - REDIS_URL=redis:6379
       - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
       - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
     deploy:
@@ -71,11 +64,8 @@ services:
     <<: *go_rinha_template
     container_name: go_rinha_2
 
-volumes:
-  db_pg-data:
-
 networks:
   backend:
     driver: bridge
   payment-processor:
-    external: true  
+    external: true
